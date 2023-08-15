@@ -13,14 +13,12 @@ class SimRunner:
         # The simulation coordinate of the center point of the screen
         self._screen_coord_center = np.array([0, 0]) 
 
-        self._time_scale = 1 
-
-    def run(self, sim):
+    def run(self, sim, *, time_delta=0.001, time_scale=1):
         pygame.init()
         self._screen = pygame.display.set_mode(self._screen_size)
 
         self._start_timestamp = time.time()
-        self._prev_time = 0 
+        self._cur_time = 0
 
         running = True
         while running:
@@ -31,27 +29,20 @@ class SimRunner:
             self._screen.fill((255, 255, 255))
     
             timestamp = time.time()
+            target_time = (timestamp - self._start_timestamp) * time_scale
 
-            cur_time = (timestamp - self._start_timestamp) * self._time_scale
-            time_delta = cur_time - self._prev_time
+            cur_time = self._cur_time
 
-            # TODO: I need to separate the update and draw calls. Draw only
-            # needs to be called like 24 to 60 Hz. Also, I should make
-            # `time_delta` consistent, because its variability is the cause of
-            # occasionally huge floating point errors. If I pause the process
-            # for a few seconds and bring it up again, the energy changes
-            # wildly. I need to make it possible to pause the process and then
-            # when it resumes, have it iterate through all the missed timesteps
-            # correctly. Simulations should be repeatable. It should also be
-            # possible to run a simulation in headless mode at maximum
-            # processing speed.
+            while cur_time < target_time:
+                sim.update(self, cur_time, time_delta)
+                cur_time += time_delta
 
-            sim.update(self, cur_time, time_delta)
+            self._cur_time = cur_time
+
+            # TODO: Only draw at a fixed rate
             sim.draw(self)
 
             pygame.display.flip()
-
-            self._prev_time = cur_time
 
         pygame.quit()
 
