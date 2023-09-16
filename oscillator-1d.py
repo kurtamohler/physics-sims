@@ -1,13 +1,11 @@
-import pygame
 import numpy as np
-import time
 from sim_runner import SimRunner
 
 def calc_acceleration(x, k, m):
     return -(k / m) * x
 
 class Oscillator1DSim:
-    def __init__(self, x=2, v=0, m=10, k=30, *, dtype=np.float32):
+    def __init__(self, x=2, v=0, m=0.25, k=4, *, dtype=np.float32):
         self.x = np.array(x, dtype=dtype)
         self.v = np.array(v, dtype=dtype)
         self.m = np.array(m, dtype=dtype)
@@ -17,7 +15,7 @@ class Oscillator1DSim:
         self.iters = 0
 
     def update(self, sim_runner, cur_time, time_delta):
-        # Use volocity Verlet integration to limit information loss:
+        # Use velocity Verlet integration to limit energy loss:
         # https://en.wikipedia.org/wiki/Verlet_integration
         x_next = self.x + self.v * time_delta + self.a * (time_delta**2) * 0.5
         a_next = calc_acceleration(x_next, self.k, self.m)
@@ -27,7 +25,7 @@ class Oscillator1DSim:
         self.v = v_next
         self.a = a_next
 
-        if self.iters % 10_000 == 0:
+        if self.iters % 1_000 == 0:
             kinetic = 0.5 * self.m * self.v**2
             potential = 0.5 * self.k * self.x**2
             print(f'{cur_time}: {kinetic + potential}')
