@@ -1,31 +1,32 @@
 import numpy as np
 from sim_runner import SimRunner
 
-class TwoParticleSpring1DSim:
-    def calc_a(self, x):
-        return self.k * (x[0] - x[1] + self.R) * np.array([[-1], [1]]) / self.m
+def calc_x_dot(p, m):
+    return p / m
 
+def calc_p_dot(x, k, R):
+    return k * (x[0] - x[1] + R) * np.array([[-1], [1]])
+
+class TwoParticleSpring1DSim:
     def __init__(self, *, dtype=np.float32):
         self.x = np.array([[-5], [-2]], dtype=dtype)
-        self.v = np.array([[0.001], [0]], dtype=dtype)
+        v = np.array([[0.001], [0]], dtype=dtype)
         self.m = np.array([[0.5], [0.5]], dtype=dtype)
+        self.p = self.m * v
         self.R = np.array(1.5, dtype=dtype)
         self.k = np.array(20, dtype=dtype)
-
-        self.a = self.calc_a(self.x)
 
         self.iters = 0
 
     def update(self, sim_runner, cur_time, time_delta):
-        x_next = self.x + self.v * time_delta + self.a * (time_delta**2) * 0.5
-        a_next = self.calc_a(x_next)
-        v_next = self.v + (self.a + a_next) * time_delta * 0.5
+        x_halfway = self.x + 0.5 * calc_x_dot(self.p, self.m) * time_delta
+        p_next = self.p + calc_p_dot(x_halfway, self.k, self.R) * time_delta
+        x_next = x_halfway + 0.5 * calc_x_dot(p_next, self.m) * time_delta
 
         self.x = x_next
-        self.v = v_next
-        self.a = a_next
+        self.p = p_next
 
-        kinetic = (0.5 * self.m * self.v**2).sum()
+        kinetic = (self.p**2 / (2 * self.m)).sum()
         potential = 0.5 * self.k * ((self.x[1] - self.x[0] - self.R)**2).sum()
         total = kinetic + potential
 
@@ -37,5 +38,7 @@ class TwoParticleSpring1DSim:
     def draw(self, sim_runner):
         sim_runner.draw_dot(np.array([self.x[0][0], 0]))
         sim_runner.draw_dot(np.array([self.x[1][0], 0]))
+        sim_runner.draw_dot([self.x[0][0], self.p[0][0]])
+        sim_runner.draw_dot([self.x[1][0], self.p[1][0]])
 
 SimRunner().run(sim=TwoParticleSpring1DSim())
