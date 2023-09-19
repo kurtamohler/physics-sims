@@ -29,7 +29,7 @@ class Pendulum2DSim:
         self.theta_dot = theta_dot_next
         self.theta_ddot = theta_ddot_next
 
-        if self.iters % 10_000 == 0:
+        if self.iters % 1_000 == 0:
             kinetic = 0.5 * self.m * (self.R * self.theta_dot)**2
             potential = -self.m * self.g * self.R * np.cos(self.theta)
             total = kinetic + potential
