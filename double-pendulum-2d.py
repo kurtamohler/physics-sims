@@ -64,13 +64,7 @@ class DoublePendulum2DSim:
         self.omega = omega_next
         self.alpha = alpha_next
 
-        kinetic, potential = self.calc_energy()
-        total = kinetic + potential
-        print(f'{cur_time} {kinetic} {potential} {total}')
-
-        self.iters += 1
-
-    def draw(self, sim_runner):
+    def draw(self, sim_runner, cur_time):
         x0 = self.R[0] * np.sin(self.theta[0])
         y0 = -self.R[0] * np.cos(self.theta[0])
 
@@ -81,4 +75,11 @@ class DoublePendulum2DSim:
         sim_runner.draw_dot([x0, y0])
         sim_runner.draw_dot([x1, y1])
 
-SimRunner().run(sim=DoublePendulum2DSim(), time_delta=0.0001)
+        kinetic, potential = self.calc_energy()
+        total = kinetic + potential
+        print(f'{cur_time} {kinetic} {potential} {total}')
+
+        self.iters += 1
+
+if __name__ == '__main__':
+    SimRunner().run(sim=DoublePendulum2DSim(), time_delta=0.0001)

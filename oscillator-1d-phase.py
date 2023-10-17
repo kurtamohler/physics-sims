@@ -26,6 +26,9 @@ class Oscillator1DPhaseSim:
         self.x = x_next
         self.p = p_next
 
+    def draw(self, sim_runner, cur_time):
+        sim_runner.draw_dot(np.array([self.x, self.p]))
+
         if self.iters % 1_000 == 0:
             kinetic = 0.5 * self.p ** 2 / self.m
             potential = 0.5 * self.k * self.x**2
@@ -33,7 +36,5 @@ class Oscillator1DPhaseSim:
 
         self.iters += 1
 
-    def draw(self, sim_runner):
-        sim_runner.draw_dot(np.array([self.x, self.p]))
-
-SimRunner().run(sim=Oscillator1DPhaseSim())
+if __name__ == '__main__':
+    SimRunner().run(sim=Oscillator1DPhaseSim())

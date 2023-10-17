@@ -30,6 +30,10 @@ class Pendulum2DPhaseSim:
         self.theta = theta_next
         self.p = p_next
 
+    def draw(self, sim_runner, cur_time):
+        sim_runner.draw_dot(calc_xy(self.theta, self.R))
+        sim_runner.draw_dot(np.array([0, 0]))
+
         if self.iters % 1_000 == 0:
             kinetic = self.p**2 / (2 * self.m * self.R**2)
             potential = -self.m * self.g * self.R * np.cos(self.theta)
@@ -38,10 +42,7 @@ class Pendulum2DPhaseSim:
 
         self.iters += 1
 
-    def draw(self, sim_runner):
-        sim_runner.draw_dot(calc_xy(self.theta, self.R))
-        sim_runner.draw_dot(np.array([0, 0]))
-
-SimRunner().run(sim=Pendulum2DPhaseSim())
+if __name__ == '__main__':
+    SimRunner().run(sim=Pendulum2DPhaseSim())
 
     

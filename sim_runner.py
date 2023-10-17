@@ -13,6 +13,17 @@ class SimRunner:
         # The simulation coordinate of the center point of the screen
         self._screen_coord_center = np.array([0, 0]) 
 
+    def run_headless(self, sim, run_time, *, time_delta=0.001):
+        cur_time = 0
+        states = [sim.state(cur_time)]
+
+        while cur_time < run_time:
+            cur_time += time_delta
+            sim.update(self, cur_time, time_delta)
+            states.append(sim.state(cur_time))
+
+        return states
+
     def run(self, sim, *, time_delta=0.001, time_scale=1):
         pygame.init()
         self._screen = pygame.display.set_mode(self._screen_size)
@@ -40,7 +51,7 @@ class SimRunner:
             self._cur_time = cur_time
 
             # TODO: Only draw at a fixed rate
-            sim.draw(self)
+            sim.draw(self, cur_time)
 
             pygame.display.flip()
 

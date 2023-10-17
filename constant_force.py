@@ -2,10 +2,10 @@ import numpy as np
 from sim_runner import SimRunner
 
 def calc_acceleration(x, k, m):
-    return -(k / m) * x
+    return -(k / m)
 
-class Oscillator1DSim:
-    def __init__(self, x=2, v=0, m=0.25, k=4, *, dtype=np.float32):
+class ConstantForce1DSim:
+    def __init__(self, x=0, v=0, m=0.25, k=-4, *, dtype=np.float32):
         self.x = np.array(x, dtype=dtype)
         self.v = np.array(v, dtype=dtype)
         self.m = np.array(m, dtype=dtype)
@@ -25,15 +25,26 @@ class Oscillator1DSim:
         self.v = v_next
         self.a = a_next
 
+    def calc_kinetic(self):
+        return 0.5 * self.m * self.v**2
+
+    def calc_potential(self):
+        return self.k * self.x
+
     def draw(self, sim_runner, cur_time):
         sim_runner.draw_dot(np.array([self.x, 0]))
 
         if self.iters % 1_000 == 0:
-            kinetic = 0.5 * self.m * self.v**2
-            potential = 0.5 * self.k * self.x**2
+            kinetic = self.calc_kinetic()
+            potential = self.calc_potential()
             print(f'{cur_time}: {kinetic + potential}')
 
         self.iters += 1
 
+    def state(self, cur_time):
+        kinetic = self.calc_kinetic()
+        potential = self.calc_potential()
+        return [cur_time, self.x, self.v, kinetic, potential, kinetic+potential]
+
 if __name__ == '__main__':
-    SimRunner().run(sim=Oscillator1DSim())
+    SimRunner().run(sim=ConstantForce1DSim())

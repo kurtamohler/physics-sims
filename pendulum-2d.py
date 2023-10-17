@@ -29,6 +29,10 @@ class Pendulum2DSim:
         self.theta_dot = theta_dot_next
         self.theta_ddot = theta_ddot_next
 
+    def draw(self, sim_runner, cur_time):
+        sim_runner.draw_dot(calc_xy(self.theta, self.R))
+        sim_runner.draw_dot(np.array([0, 0]))
+
         if self.iters % 1_000 == 0:
             kinetic = 0.5 * self.m * (self.R * self.theta_dot)**2
             potential = -self.m * self.g * self.R * np.cos(self.theta)
@@ -37,10 +41,7 @@ class Pendulum2DSim:
 
         self.iters += 1
 
-    def draw(self, sim_runner):
-        sim_runner.draw_dot(calc_xy(self.theta, self.R))
-        sim_runner.draw_dot(np.array([0, 0]))
-
-SimRunner().run(sim=Pendulum2DSim())
+if __name__ == '__main__':
+    SimRunner().run(sim=Pendulum2DSim())
 
     
