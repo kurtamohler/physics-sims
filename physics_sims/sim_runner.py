@@ -38,20 +38,20 @@ class SimRunner:
                     running = False
 
             self._screen.fill((255, 255, 255))
+
+            cur_time = self._cur_time
+
+            # TODO: Only draw at a fixed rate
+            sim.draw(self, cur_time)
     
             timestamp = time.time()
             target_time = (timestamp - self._start_timestamp) * time_scale
-
-            cur_time = self._cur_time
 
             while cur_time < target_time:
                 sim.update(self, cur_time, time_delta)
                 cur_time += time_delta
 
             self._cur_time = cur_time
-
-            # TODO: Only draw at a fixed rate
-            sim.draw(self, cur_time)
 
             pygame.display.flip()
 

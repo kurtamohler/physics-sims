@@ -43,7 +43,8 @@ class ConstantForceSR1DSim:
         self.v = self.v + (k1v + 2.0 * (k2v + k3v) + k4v) / 6.0
 
     def calc_kinetic(self):
-        return self.m * c**2 * ((1 - (self.v / c)**2)**-0.5 - 1)
+        #return -self.m * c**2 * ((1 - (self.v / c)**2)**0.5 - 1)
+        return 0.5 * self.m * self.v**2
 
     def calc_potential(self):
         return self.k * self.x
@@ -53,7 +54,7 @@ class ConstantForceSR1DSim:
         if self.iters % 1_000 == 0:
             kinetic = self.calc_kinetic()
             potential = self.calc_potential()
-            print(f'{cur_time}: {kinetic} {potential} {kinetic + potential}')
+            print(f'{cur_time}: {kinetic} {potential} {kinetic + potential} {self.v}')
 
         self.iters += 1
 
