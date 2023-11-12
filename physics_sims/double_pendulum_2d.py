@@ -1,5 +1,5 @@
 import numpy as np
-from sim_runner import SimRunner
+from physics_sims import SimRunner
 
 class DoublePendulum2DSim:
 

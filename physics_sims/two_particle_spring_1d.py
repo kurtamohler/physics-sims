@@ -1,5 +1,5 @@
 import numpy as np
-from sim_runner import SimRunner
+from physics_sims import SimRunner
 
 class TwoParticleSpring1DSim:
     def calc_a(self, x):
@@ -34,8 +34,9 @@ class TwoParticleSpring1DSim:
 
         self.iters += 1
 
-    def draw(self, sim_runner):
+    def draw(self, sim_runner, cur_time):
         sim_runner.draw_dot(np.array([self.x[0][0], 0]))
         sim_runner.draw_dot(np.array([self.x[1][0], 0]))
 
-SimRunner().run(sim=TwoParticleSpring1DSim())
+if __name__ == '__main__':
+    SimRunner().run(sim=TwoParticleSpring1DSim())

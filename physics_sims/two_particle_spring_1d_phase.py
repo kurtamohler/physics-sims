@@ -1,5 +1,5 @@
 import numpy as np
-from sim_runner import SimRunner
+from physics_sims import SimRunner
 
 def calc_x_dot(p, m):
     return p / m
@@ -7,7 +7,7 @@ def calc_x_dot(p, m):
 def calc_p_dot(x, k, R):
     return k * (x[0] - x[1] + R) * np.array([[-1], [1]])
 
-class TwoParticleSpring1DSim:
+class TwoParticleSpring1DPhaseSim:
     def __init__(self, *, dtype=np.float32):
         self.x = np.array([[-5], [-2]], dtype=dtype)
         v = np.array([[0.001], [0]], dtype=dtype)
@@ -35,10 +35,11 @@ class TwoParticleSpring1DSim:
 
         self.iters += 1
 
-    def draw(self, sim_runner):
+    def draw(self, sim_runner, cur_time):
         sim_runner.draw_dot(np.array([self.x[0][0], 0]))
         sim_runner.draw_dot(np.array([self.x[1][0], 0]))
         sim_runner.draw_dot([self.x[0][0], self.p[0][0]])
         sim_runner.draw_dot([self.x[1][0], self.p[1][0]])
 
-SimRunner().run(sim=TwoParticleSpring1DSim())
+if __name__ == '__main__':
+    SimRunner().run(sim=TwoParticleSpring1DPhaseSim())

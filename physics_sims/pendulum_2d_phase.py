@@ -1,5 +1,5 @@
 import numpy as np
-from sim_runner import SimRunner
+from physics_sims import SimRunner
 
 def calc_p_dot(theta, m, g, R):
     return -m * g * R * np.sin(theta)

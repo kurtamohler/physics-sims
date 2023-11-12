@@ -1,5 +1,5 @@
 import numpy as np
-from sim_runner import SimRunner
+from physics_sims import SimRunner
 
 c = 1
 
@@ -9,7 +9,7 @@ def calc_p_dot(x, k):
 def calc_x_dot(p, m):
     return p * (m**2 + p**2)**(-0.5)
 
-class Oscillator1DSim:
+class Oscillator1DSRPhaseSim:
     def __init__(self, x=2, v=0, m=0.25, k=4, *, dtype=np.float32):
         self.x = np.array(x, dtype=dtype)
         self.p = np.array(m * v * (1 - v**2)**(-0.5), dtype=dtype)
@@ -42,4 +42,4 @@ class Oscillator1DSim:
         self.iters += 1
 
 if __name__ == '__main__':
-    SimRunner().run(sim=Oscillator1DSim())
+    SimRunner().run(sim=Oscillator1DSRPhaseSim())
