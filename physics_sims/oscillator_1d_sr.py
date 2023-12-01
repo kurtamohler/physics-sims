@@ -46,11 +46,22 @@ class Oscillator1DSRSim:
         sim_runner.draw_dot(np.array([self.x, 0]))
 
         if self.iters % 1_000 == 0:
-            kinetic = self.m * c**2 * ((1 - (self.v / c)**2)**-0.5 - 1)
-            potential = 0.5 * self.k * self.x**2
+            kinetic = self.calc_kinetic()
+            potential = self.calc_potential()
             print(f'{cur_time}: {kinetic} {potential} {kinetic + potential}')
 
         self.iters += 1
+
+    def calc_kinetic(self):
+        return self.m * (1 - self.v**2)**-0.5 - self.m
+
+    def calc_potential(self):
+        return 0.5 * self.k * self.x**2
+    
+    def state(self, cur_time):
+        kinetic = self.calc_kinetic()
+        potential = self.calc_potential()
+        return [cur_time, self.x, self.v, kinetic, potential, kinetic + potential]
 
 if __name__ == '__main__':
     SimRunner().run(sim=Oscillator1DSRSim())
