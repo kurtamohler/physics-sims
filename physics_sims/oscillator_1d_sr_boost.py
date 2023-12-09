@@ -7,7 +7,7 @@ def calc_acceleration(x, t, v, k, m, v_b):
     #return -(k / m * (1 - v_boost**2)) * (x + v_boost * t) * (1 - (v/c)**2)**(1.5)
     #return -(k / m * (1 - v_boost**2)) * (x + v_boost * t) * (1 - (v/c)**2)**(1.5)
     #return -k/m * (1 - v**2)**1.5 * (v_b * t / (1-v_b**2)**0.5 + x / (1 - v_b**2)**0.5)
-    return -k/m * (1 - v**2)**1.5 * (v_b * t + x) / (1-v_b**2)**0.5
+    return -k/m * (1 - v**2)**1.5 * (x + v_b * t) / (1-v_b**2)**0.5
 
 class Oscillator1DSRBoostSim:
     def __init__(self, x=2, v=0, m=0.25, k=4, v_boost=0.7, *, dtype=np.float32):
