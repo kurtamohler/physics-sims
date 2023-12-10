@@ -1,5 +1,5 @@
 import numpy as np
-from physics_sims import SimRunner
+from physics_sims import SimRunner, integrators
 
 class DoublePendulum2DSim:
 
@@ -55,14 +55,10 @@ class DoublePendulum2DSim:
 
         return kinetic, potential
 
-    def update(self, sim_runner, cur_time, time_delta):
-        theta_next = self.theta + self.omega * time_delta + self.alpha * (time_delta**2) * 0.5
-        alpha_next = self.calc_alpha(theta_next, self.omega)
-        omega_next = self.omega + (self.alpha + alpha_next) * time_delta * 0.5
-
-        self.theta = theta_next
-        self.omega = omega_next
-        self.alpha = alpha_next
+    def update(self, sim_runner, t, dt):
+        _, self.theta, self.omega = integrators.runge_kutta_4th_order(
+            dt, t, self.theta, self.omega,
+            lambda _, theta, omega: self.calc_alpha(theta, omega))
 
     def draw(self, sim_runner, cur_time):
         x0 = self.R[0] * np.sin(self.theta[0])
@@ -77,9 +73,10 @@ class DoublePendulum2DSim:
 
         kinetic, potential = self.calc_energy()
         total = kinetic + potential
-        print(f'{cur_time} {kinetic} {potential} {total}')
+        if self.iters % 1000 == 0:
+            print(f'{cur_time} {kinetic} {potential} {total}')
 
         self.iters += 1
 
 if __name__ == '__main__':
-    SimRunner().run(sim=DoublePendulum2DSim(), time_delta=0.0001)
+    SimRunner().run(sim=DoublePendulum2DSim(), time_delta=0.01)
