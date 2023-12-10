@@ -1,5 +1,5 @@
 import numpy as np
-from physics_sims import SimRunner
+from physics_sims import SimRunner, integrators
 
 def calc_p_dot(x, k):
     return -k * x
@@ -16,15 +16,11 @@ class Oscillator1DPhaseSim:
 
         self.iters = 0
 
-    def update(self, sim_runner, cur_time, time_delta):
-        # Use Verlet symplectic integrator to limit energy loss:
-        # https://en.wikipedia.org/wiki/Symplectic_integrator#A_second-order_example
-        x_halfway = self.x + 0.5 * calc_x_dot(self.p, self.m) * time_delta
-        p_next = self.p + calc_p_dot(x_halfway, self.k) * time_delta
-        x_next = x_halfway + 0.5 * calc_x_dot(p_next, self.m) * time_delta
-
-        self.x = x_next
-        self.p = p_next
+    def update(self, sim_runner, t, dt):
+        _, self.x, self.p = integrators.verlet_symplectic(
+            dt, t, self.x, self.p,
+            lambda p: calc_x_dot(p, self.m),
+            lambda q: calc_p_dot(q, self.k))
 
     def draw(self, sim_runner, cur_time):
         sim_runner.draw_dot(np.array([self.x, self.p]))

@@ -20,6 +20,28 @@ def velocity_verlet(dt, t, x, v, a, calc_acceleration):
 
     return t_next, x_next, v_next, a_next
 
+def verlet_symplectic(dt, t, q, p, calc_q_dot, calc_p_dot):
+    r'''Verlet symplectic integrator for phase space.
+    https://en.wikipedia.org/wiki/Symplectic_integrator#A_second-order_example
+
+    Args:
+        dt: Amount of time to integrate over
+        t: Current time
+        q: Current position coordinate
+        p: Current momentum coordinate
+        calc_q_dot: Callable of the form ``(p) -> q_dot``
+        calc_p_dot: Callable of the form ``(q) -> p_dot``
+
+    Returns:
+        (t, q, p)
+    '''
+    q_mid = q + 0.5 * calc_q_dot(p) * dt
+    p_next = p + calc_p_dot(q_mid) * dt
+    q_next = q_mid + 0.5 * calc_q_dot(p_next) * dt
+    t_next = t + dt
+
+    return t_next, q_next, p_next
+
 def runge_kutta_4th_order(dt, t, x, v, calc_acceleration):
     r'''Classic Fourth-order Runge-Kutta integration method
     https://en.wikipedia.org/wiki/List_of_Runge%E2%80%93Kutta_methods
