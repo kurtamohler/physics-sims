@@ -11,3 +11,5 @@ from .pendulum_2d import Pendulum2DSim
 from .pendulum_2d_phase import Pendulum2DPhaseSim
 from .two_particle_spring_1d import TwoParticleSpring1DSim
 from .two_particle_spring_1d_phase import TwoParticleSpring1DPhaseSim
+
+from . import integrators

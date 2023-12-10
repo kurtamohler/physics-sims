@@ -1,5 +1,5 @@
 import numpy as np
-from physics_sims import SimRunner
+from physics_sims import SimRunner, integrators
 
 def calc_acceleration(x, k, m):
     return -(k / m) * x
@@ -14,16 +14,14 @@ class Oscillator1DSim:
 
         self.iters = 0
 
-    def update(self, sim_runner, cur_time, time_delta):
-        # Use velocity Verlet integration to limit energy loss:
-        # https://en.wikipedia.org/wiki/Verlet_integration
-        x_next = self.x + self.v * time_delta + self.a * (time_delta**2) * 0.5
-        a_next = calc_acceleration(x_next, self.k, self.m)
-        v_next = self.v + (self.a + a_next) * time_delta * 0.5
-
-        self.x = x_next
-        self.v = v_next
-        self.a = a_next
+    def update(self, sim_runner, t, dt):
+        _, self.x, self.v, self.a = integrators.velocity_verlet(
+            dt,
+            t,
+            self.x,
+            self.v,
+            self.a,
+            lambda _, x, __: calc_acceleration(x, self.k, self.m))
 
     def draw(self, sim_runner, cur_time):
         sim_runner.draw_dot(np.array([self.x, 0]))
