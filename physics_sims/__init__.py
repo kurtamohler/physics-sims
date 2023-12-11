@@ -1,3 +1,4 @@
+from .sim import Sim
 from .sim_runner import SimRunner
 from .constant_force import ConstantForce1DSim
 from .constant_force_sr import ConstantForceSR1DSim

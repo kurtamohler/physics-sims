@@ -2,6 +2,8 @@ import pygame
 import numpy as np
 import time
 
+from physics_sims import Sim
+
 class SimRunner:
     def __init__(self):
         # The size of the screen in pixels
@@ -14,17 +16,19 @@ class SimRunner:
         self._screen_coord_center = np.array([0, 0]) 
 
     def run_headless(self, sim, run_time, *, time_delta=0.001):
+        assert isinstance(sim, Sim)
         cur_time = 0
-        states = [sim.state(cur_time)]
+        states = [sim.state()]
 
         while cur_time < run_time:
             cur_time += time_delta
-            sim.update(self, cur_time, time_delta)
-            states.append(sim.state(cur_time))
+            sim.update(self, time_delta)
+            states.append(sim.state())
 
         return states
 
     def run(self, sim, *, time_delta=0.001, time_scale=1):
+        assert isinstance(sim, Sim)
         pygame.init()
         self._screen = pygame.display.set_mode(self._screen_size)
 
@@ -41,14 +45,14 @@ class SimRunner:
 
             cur_time = self._cur_time
 
-            # TODO: Only draw at a fixed rate
-            sim.draw(self, cur_time)
+            # TODO: Limit the draw rate
+            sim.draw(self)
     
             timestamp = time.time()
             target_time = (timestamp - self._start_timestamp) * time_scale
 
             while cur_time < target_time:
-                sim.update(self, cur_time, time_delta)
+                sim.update(self, time_delta)
                 cur_time += time_delta
 
             self._cur_time = cur_time
@@ -57,6 +61,11 @@ class SimRunner:
 
         pygame.quit()
 
+    # TODO: It would be much better to separate drawing APIs like this into a
+    # SimGraphics object that the SimRunner owns. `sim.update` would be given
+    # that object rather than the SimRunner. That way SimRunner is not
+    # responsible for implementing graphics, and also the Sim doesn't get access
+    # to the SimRunner.
     def draw_dot(self, position):
         position = np.asarray(position)
 

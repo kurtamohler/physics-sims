@@ -1,5 +1,5 @@
 import numpy as np
-from physics_sims import SimRunner, integrators
+from physics_sims import SimRunner, integrators, Sim
 
 c = 1
 
@@ -9,22 +9,23 @@ def calc_p_dot(x, k):
 def calc_x_dot(p, m):
     return p * (m**2 + p**2)**(-0.5)
 
-class Oscillator1DSRPhaseSim:
-    def __init__(self, x=2, v=0, m=0.25, k=4, *, dtype=np.float32):
+class Oscillator1DSRPhaseSim(Sim):
+    def __init__(self, t=0, x=2, v=0, m=0.25, k=4, *, dtype=np.float32):
         self.x = np.array(x, dtype=dtype)
         self.p = np.array(m * v * (1 - v**2)**(-0.5), dtype=dtype)
         self.m = np.array(m, dtype=dtype)
         self.k = np.array(k, dtype=dtype)
+        self.t = t
 
         self.iters = 0
 
-    def update(self, sim_runner, t, dt):
-        _, self.x, self.p = integrators.verlet_symplectic(
-            dt, t, self.x, self.p,
+    def update(self, sim_runner, dt):
+        self.t, self.x, self.p = integrators.verlet_symplectic(
+            dt, self.t, self.x, self.p,
             lambda p: calc_x_dot(p, self.m),
             lambda q: calc_p_dot(q, self.k))
 
-    def draw(self, sim_runner, cur_time):
+    def draw(self, sim_runner):
         sim_runner.draw_dot(np.array([self.x, self.p/5]))
 
         if self.iters % 1_000 == 0:
@@ -33,7 +34,7 @@ class Oscillator1DSRPhaseSim:
 
             kinetic = (self.m**2 + self.p**2)**0.5 - self.m
             potential = 0.5 * self.k * self.x**2
-            print(f'{cur_time}: {kinetic + potential}')
+            print(f'{self.t}: {kinetic + potential}')
 
         self.iters += 1
 
