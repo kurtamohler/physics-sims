@@ -17,10 +17,7 @@ class Oscillator1DSRSim:
 
     def update(self, sim_runner, t, dt):
         _, self.x, self.v = integrators.runge_kutta_4th_order(
-            dt,
-            t,
-            self.x,
-            self.v,
+            dt, t, self.x, self.v,
             lambda _, x, v: calc_acceleration(x, v, self.k, self.m))
 
     def draw(self, sim_runner, cur_time):

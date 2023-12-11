@@ -16,11 +16,7 @@ class Oscillator1DSim:
 
     def update(self, sim_runner, t, dt):
         _, self.x, self.v, self.a = integrators.velocity_verlet(
-            dt,
-            t,
-            self.x,
-            self.v,
-            self.a,
+            dt, t, self.x, self.v, self.a,
             lambda _, x, __: calc_acceleration(x, self.k, self.m))
 
     def draw(self, sim_runner, cur_time):

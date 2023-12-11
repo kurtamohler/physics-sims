@@ -1,5 +1,5 @@
 import numpy as np
-from physics_sims import SimRunner
+from physics_sims import SimRunner, integrators
 
 class TwoParticleSpring1DSim:
     def calc_a(self, x):
@@ -16,14 +16,14 @@ class TwoParticleSpring1DSim:
 
         self.iters = 0
 
-    def update(self, sim_runner, cur_time, time_delta):
-        x_next = self.x + self.v * time_delta + self.a * (time_delta**2) * 0.5
-        a_next = self.calc_a(x_next)
-        v_next = self.v + (self.a + a_next) * time_delta * 0.5
+    def update(self, sim_runner, t, dt):
+        _, self.x, self.v, self.a = integrators.velocity_verlet(
+            dt, t, self.x, self.v, self.a,
+            lambda _, x, __: self.calc_a(x))
 
-        self.x = x_next
-        self.v = v_next
-        self.a = a_next
+    def draw(self, sim_runner, cur_time):
+        sim_runner.draw_dot(np.array([self.x[0][0], 0]))
+        sim_runner.draw_dot(np.array([self.x[1][0], 0]))
 
         kinetic = (0.5 * self.m * self.v**2).sum()
         potential = 0.5 * self.k * ((self.x[1] - self.x[0] - self.R)**2).sum()
@@ -33,10 +33,6 @@ class TwoParticleSpring1DSim:
             print(f'{cur_time} {kinetic} {potential} {total}')
 
         self.iters += 1
-
-    def draw(self, sim_runner, cur_time):
-        sim_runner.draw_dot(np.array([self.x[0][0], 0]))
-        sim_runner.draw_dot(np.array([self.x[1][0], 0]))
 
 if __name__ == '__main__':
     SimRunner().run(sim=TwoParticleSpring1DSim())

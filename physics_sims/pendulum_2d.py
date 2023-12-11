@@ -1,5 +1,5 @@
 import numpy as np
-from physics_sims import SimRunner
+from physics_sims import SimRunner, integrators
 
 def calc_theta_ddot(theta, g, R):
     return - (g / R) * np.sin(theta)
@@ -17,17 +17,13 @@ class Pendulum2DSim:
         self.g = g
         self.R = R
 
-        self.theta_ddot = calc_theta_ddot(theta, g, R)
+        self.theta_ddot = 0
         self.iters = 0
 
-    def update(self, sim_runner, cur_time, time_delta):
-        theta_next = self.theta + self.theta_dot * time_delta + self.theta_ddot * (time_delta**2) * 0.5
-        theta_ddot_next = calc_theta_ddot(theta_next, self.g, self.R)
-        theta_dot_next = self.theta_dot + (self.theta_ddot + theta_ddot_next) * time_delta * 0.5
-
-        self.theta = theta_next
-        self.theta_dot = theta_dot_next
-        self.theta_ddot = theta_ddot_next
+    def update(self, sim_runner, t, dt):
+        _, self.theta, self.theta_dot, self.theta_ddot = integrators.velocity_verlet(
+            dt, t, self.theta, self.theta_dot, self.theta_ddot,
+            lambda _, theta, __: calc_theta_ddot(theta, self.g, self.R))
 
     def draw(self, sim_runner, cur_time):
         sim_runner.draw_dot(calc_xy(self.theta, self.R))

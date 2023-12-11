@@ -17,10 +17,7 @@ class Oscillator1DSRBoostSim:
 
     def update(self, sim_runner, t, dt):
         _, self.x, self.v = integrators.runge_kutta_4th_order(
-            dt,
-            t,
-            self.x,
-            self.v,
+            dt, t, self.x, self.v,
             lambda t, x, v: calc_acceleration(t, x, v, self.k, self.m, self.v_boost))
 
     def draw(self, sim_runner, t):
