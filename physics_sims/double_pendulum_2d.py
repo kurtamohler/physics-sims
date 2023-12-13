@@ -79,4 +79,4 @@ class DoublePendulum2DSim(Sim):
         self.iters += 1
 
 if __name__ == '__main__':
-    SimRunner().run(sim=DoublePendulum2DSim(), time_delta=0.01)
+    SimRunner().run(sim=DoublePendulum2DSim(), time_delta=0.01, time_scale=20)

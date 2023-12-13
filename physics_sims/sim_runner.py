@@ -1,4 +1,3 @@
-import pygame
 import numpy as np
 import time
 
@@ -25,9 +24,10 @@ class SimRunner:
             sim.update(self, time_delta)
             states.append(sim.state())
 
-        return states
+        return np.array(states)
 
     def run(self, sim, *, time_delta=0.001, time_scale=1):
+        import pygame
         assert isinstance(sim, Sim)
         pygame.init()
         self._screen = pygame.display.set_mode(self._screen_size)
@@ -67,6 +67,7 @@ class SimRunner:
     # responsible for implementing graphics, and also the Sim doesn't get access
     # to the SimRunner.
     def draw_dot(self, position):
+        import pygame
         position = np.asarray(position)
 
         position_pixels = self._screen_size // 2 + (position - self._screen_coord_center) * (self._screen_size / self._screen_coord_scale)
