@@ -32,32 +32,31 @@ class SimRunner:
         pygame.init()
         self._screen = pygame.display.set_mode(self._screen_size)
 
-        self._start_timestamp = time.time()
-        self._cur_time = 0
+        t = time.time()
+        t_sim = t
+        t_last_graphics_update = -float('inf')
+
+        t_graphics_update_period = 1 / 120
 
         running = True
         while running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
+            if t - t_last_graphics_update >= t_graphics_update_period:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        running = False
 
-            self._screen.fill((255, 255, 255))
+                self._screen.fill((255, 255, 255))
 
-            cur_time = self._cur_time
+                sim.draw(self)
 
-            # TODO: Limit the draw rate
-            sim.draw(self)
+                pygame.display.flip()
+                t_last_graphics_update = t
     
-            timestamp = time.time()
-            target_time = (timestamp - self._start_timestamp) * time_scale
-
-            while cur_time < target_time:
+            while t_sim < t:
                 sim.update(self, time_delta)
-                cur_time += time_delta
+                t_sim += time_delta / time_scale
 
-            self._cur_time = cur_time
-
-            pygame.display.flip()
+            t = time.time()
 
         pygame.quit()
 
