@@ -22,7 +22,11 @@ class SimRunner:
         while cur_time < run_time:
             cur_time += time_delta
             sim.update(self, time_delta)
-            states.append(sim.state())
+            state = sim.state()
+            if state is None:
+                cur_time = run_time
+            else:
+                states.append(sim.state())
 
         return np.array(states)
 
