@@ -30,7 +30,7 @@ class SimRunner:
 
         return np.array(states)
 
-    def run(self, sim, *, time_delta=0.001, time_scale=1):
+    def run(self, sim, *, time_delta=0.001, time_scale=1, draw_freq=120):
         import pygame
         assert isinstance(sim, Sim)
         pygame.init()
@@ -40,7 +40,7 @@ class SimRunner:
         t_sim = t
         t_last_graphics_update = -float('inf')
 
-        t_graphics_update_period = 1 / 120
+        t_graphics_update_period = 1 / draw_freq
 
         running = True
         while running:
