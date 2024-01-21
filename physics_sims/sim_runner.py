@@ -73,10 +73,16 @@ class SimRunner:
         import pygame
         position = np.asarray(position)
 
-        position_pixels = self._screen_size // 2 + (position - self._screen_coord_center) * (self._screen_size / self._screen_coord_scale)
+        draw_position = self.convert_to_draw_position(position)
 
         pygame.draw.circle(
             self._screen,
             (0, 0, 0),
-            position_pixels,
+            draw_position,
             5)
+
+    def convert_to_draw_position(self, position):
+        return self._screen_size // 2 + (position - self._screen_coord_center) * (self._screen_size / self._screen_coord_scale)
+
+    def get_screen_coord_range(self):
+        return np.abs(self._screen_coord_scale)
