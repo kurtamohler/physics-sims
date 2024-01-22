@@ -12,15 +12,19 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
         self.t = 0
         self.x = 0
         self.v = 0
+        self.prev_v = self.v
 
         self.a_player = 5
         self.c = 1
         self.t_player = 0
-        self.path = [[self.t, self.x]]
 
-        self.max_v_decimal_places = 14
+        self.max_v_decimal_places = 12
         self.max_v = 1 - (0.1) ** self.max_v_decimal_places
         self.max_path_len = 10_000
+        self.path = [[self.t, self.x]] * self.max_path_len
+
+        self.dt_direction = 1
+        self.prev_dt_direction = self.dt_direction
 
         # If True, time in the rest frame passes at the same rate
         # as it does on the computer.
@@ -40,13 +44,19 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
         elif self.v < -self.max_v:
             self.v = -self.max_v
 
-    def handle_player_controls(self, sim_runner, dt):
+    def handle_player_controls(self, dt):
         keys = pygame.key.get_pressed()
-        sign = None
+
         if keys[pygame.K_RIGHT]:
             self.v = self.v + self.calc_a() * dt
         if keys[pygame.K_LEFT]:
             self.v = self.v - self.calc_a() * dt
+
+        if keys[pygame.K_UP]:
+            self.dt_direction = 1
+        if keys[pygame.K_DOWN]:
+            self.dt_direction = -1
+
         if keys[pygame.K_SPACE]:
             self.v = 0
 
@@ -54,17 +64,34 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
 
     def update(self, sim_runner, dt_computer):
         if self.match_computer_time_to_rest_frame:
-            dt = dt_computer
+            dt = self.dt_direction * dt_computer
             dt_player = dt * self.calc_dt_player_by_dt()
         else:
-            dt = dt_computer / self.calc_dt_player_by_dt()
+            dt = self.dt_direction * dt_computer / self.calc_dt_player_by_dt()
             dt_player = dt_computer
 
-        self.handle_player_controls(sim_runner, dt)
+        self.handle_player_controls(dt)
         self.t = self.t + dt
         self.x = self.x + self.v * dt
         self.t_player = self.t_player + dt_player
-        self.path.append([self.t, self.x])
+
+        if self.prev_v == self.v and self.prev_dt_direction == self.dt_direction:
+            self.path[-1] = [self.t, self.x]
+        else:
+            # Only add to the path if the distance between events is noticeable
+            # or if dt direction changes
+            x_diff = self.x - self.path[-2][1]
+            t_diff = self.t - self.path[-2][0]
+            dist = (t_diff ** 2 - x_diff**2)**0.5
+
+            if dist > 0.1 or self.prev_dt_direction != self.dt_direction:
+                # Prune path if it gets too long
+                if len(self.path) >= self.max_path_len:
+                    self.path = self.path[::2]
+                self.path.append([self.t, self.x])
+
+        self.prev_v = self.v
+        self.prev_dt_direction = self.dt_direction
 
     def draw(self, sim_runner):
         coord_range_x, coord_range_t = sim_runner.get_screen_coord_range()
@@ -100,20 +127,15 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
             )
 
         # Path player took in the past
-        path = np.asarray(self.path)
-        #path = path[path[:, 0] > (self.t + t_start)]
-        path = path[-self.max_path_len:]
-        # Replace the path with the truncated one
-        self.path = path.tolist()
         if len(self.path) >= 2:
-            path = np.array([self.t, self.x]) - path
+            path = np.array([self.t, self.x]) - np.asarray(self.path)
             draw_path = sim_runner.convert_to_draw_position(path)
             pygame.draw.aalines(
                 sim_runner._screen,
                 (100, 100, 255),
                 False,
                 draw_path[:, [1, 0]],
-                2
+                1
             )
 
         # Player's line of simultaneity: t = vx/c**2
@@ -145,7 +167,8 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
             f"t = {self.t:.2f}",
             f"x = {self.x:.2f}",
             f"v = {self.v:.{self.max_v_decimal_places}f}",
-            f"dt/dtau = {1 / self.calc_dt_player_by_dt():.3f}"
+            f"dt/dtau = {1 / self.calc_dt_player_by_dt():.3f}",
+            f"path len: {len(self.path)}"
         ]
         for idx, text in enumerate(text_list):
             sim_runner._screen.blit(
