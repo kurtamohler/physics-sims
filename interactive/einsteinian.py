@@ -142,7 +142,7 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
                 events_draw[1],
                 1
             )
-            t_text = t_value + int(self.t)
+            t_text = t_value + int(self.t // 1)
             sim_runner._screen.blit(
                 font.render(f"{t_text:.0f}", True, (0, 0, 0)),
                 (events_draw[0] + events_draw[1]) / 2)
@@ -164,7 +164,7 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
                 events_draw[1],
                 1
             )
-            x_text = x_value + int(self.x)
+            x_text = x_value + int(self.x // 1)
             sim_runner._screen.blit(
                 font.render(f"{x_text:.0f}", True, (0, 0, 0)),
                 (events_draw[0] + events_draw[1]) / 2)
