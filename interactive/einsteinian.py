@@ -7,6 +7,13 @@ font = pygame.font.SysFont(
     pygame.font.get_default_font(),
     20)
 
+def lorentz_matrix(v, c):
+    lorentz_factor = (1 - (v/c)**2)**(-0.5)
+    return np.array([
+        [1, -v/c**2],
+        [-v, 1]
+    ]) * lorentz_factor
+
 class InteractiveEinsteinianSim(physics_sims.Sim):
     def __init__(self):
         self.t = 0
@@ -14,7 +21,7 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
         self.v = 0
         self.prev_v = self.v
 
-        self.a_player = 5
+        self.a_player = 1
         self.c = 1
         self.t_player = 0
 
@@ -31,6 +38,12 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
         # If False, time in the player's frame passes at the same
         # rate as it does on the computer.
         self.match_computer_time_to_rest_frame = False
+
+        # If True, draw the screen from the perspective of the player's
+        # coordinate system.
+        # If False, draw the screen from the perspective of the rest frame.
+        self.draw_in_player_frame = False
+        self.draw_in_player_frame = True
 
     def calc_dt_player_by_dt(self):
         return np.sqrt(1 - (self.v / self.c)**2)
@@ -102,33 +115,66 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
         t_start = int(-(coord_range_t // 2))
         t_end = int(coord_range_t - coord_range_t // 2)
 
+        if self.draw_in_player_frame:
+            B = lorentz_matrix(self.v, self.c)
+        else:
+            B = np.eye(2)
+
+        player_event = np.matmul(
+            np.array([self.t, self.x]),
+            B)
+
+
         # Time gridlines
         t_offset = self.t % 1
-        for t in range(t_start, t_end + 1):
-            t -= t_offset
+        for t_value in range(t_start, t_end + 1):
+            t = t_value - t_offset
+            events = np.array([
+                [t, x_start],
+                [t, x_end]
+            ])
+            events = np.matmul(events, B)
+            events_draw = sim_runner.convert_to_draw_position(events[:, [1, 0]])
             pygame.draw.aaline(
                 sim_runner._screen,
                 (0, 0, 0),
-                sim_runner.convert_to_draw_position([x_start, t]),
-                sim_runner.convert_to_draw_position([x_end, t]),
+                events_draw[0],
+                events_draw[1],
                 1
             )
+            t_text = t_value + int(self.t)
+            sim_runner._screen.blit(
+                font.render(f"{t_text:.0f}", True, (0, 0, 0)),
+                (events_draw[0] + events_draw[1]) / 2)
 
         # Position gridlines
         x_offset = self.x % 1
-        for x in range(x_start, x_end + 1):
-            x -= x_offset
+        for x_value in range(x_start, x_end + 1):
+            x = x_value - x_offset
+            events = np.array([
+                [t_start, x],
+                [t_end, x]
+            ])
+            events = np.matmul(events, B)
+            events_draw = sim_runner.convert_to_draw_position(events[:, [1, 0]])
             pygame.draw.aaline(
                 sim_runner._screen,
                 (0, 0, 0),
-                sim_runner.convert_to_draw_position([x, t_start]),
-                sim_runner.convert_to_draw_position([x, t_end]),
+                events_draw[0],
+                events_draw[1],
                 1
             )
+            x_text = x_value + int(self.x)
+            sim_runner._screen.blit(
+                font.render(f"{x_text:.0f}", True, (0, 0, 0)),
+                (events_draw[0] + events_draw[1]) / 2)
 
         # Path player took in the past
         if len(self.path) >= 2:
-            path = np.array([self.t, self.x]) - np.asarray(self.path)
+            path = np.matmul(
+                np.asarray(self.path),
+                B)
+            path = player_event - path
             draw_path = sim_runner.convert_to_draw_position(path)
             pygame.draw.aalines(
                 sim_runner._screen,
@@ -139,19 +185,24 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
             )
 
         # Player's line of simultaneity: t = vx/c**2
+        if self.draw_in_player_frame:
+            v_player = 0
+        else:
+            v_player = self.v
+
         pygame.draw.line(
             sim_runner._screen,
             (255, 0, 0),
-            sim_runner.convert_to_draw_position([x_start, self.v * x_start/self.c**2]),
-            sim_runner.convert_to_draw_position([x_end, self.v * x_end/self.c**2])
+            sim_runner.convert_to_draw_position([x_start, v_player * x_start/self.c**2]),
+            sim_runner.convert_to_draw_position([x_end, v_player * x_end/self.c**2])
         )
 
         # Player's line of colocality: x = vt
         pygame.draw.line(
             sim_runner._screen,
             (255, 0, 0),
-            sim_runner.convert_to_draw_position([self.v * t_start, t_start]),
-            sim_runner.convert_to_draw_position([self.v * t_end, t_end]),
+            sim_runner.convert_to_draw_position([v_player * t_start, t_start]),
+            sim_runner.convert_to_draw_position([v_player * t_end, t_end]),
         )
 
         # Player
