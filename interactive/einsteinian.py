@@ -21,12 +21,38 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
         self.v = 0
         self.prev_v = self.v
 
+        self.objects_X = np.array([
+            [0., 0.],
+            [0., 2.],
+            [0., 0.],
+            [0., 0.1],
+            [0, 0],
+            [0, 0],
+        ])
+        self.objects_v = np.array([
+            0,
+            0,
+            0.99,
+            0.99,
+            0.8,
+            0,
+        ])
+        self.objects_a_prime = [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0.1,
+        ]
+
         self.a_player = 1
+        self.c = float('inf')
         self.c = 1
         self.t_player = 0
 
-        self.max_v_decimal_places = 12
-        self.max_v = 1 - (0.1) ** self.max_v_decimal_places
+        self.max_v_decimal_places = 10
+        self.max_v = self.c * (1 - (0.1) ** self.max_v_decimal_places)
         self.max_path_len = 10_000
         self.path = [[self.t, self.x]] * self.max_path_len
 
@@ -95,7 +121,7 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
             # or if dt direction changes
             x_diff = self.x - self.path[-2][1]
             t_diff = self.t - self.path[-2][0]
-            dist = (t_diff ** 2 - x_diff**2)**0.5
+            dist = (t_diff ** 2 - (x_diff / self.c)**2)**0.5
 
             if dist > 0.1 or self.prev_dt_direction != self.dt_direction:
                 # Prune path if it gets too long
@@ -105,6 +131,17 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
 
         self.prev_v = self.v
         self.prev_dt_direction = self.dt_direction
+
+        # Simulate objects
+        for idx, object_X in enumerate(self.objects_X):
+            v = self.objects_v[idx]
+            a_prime = self.objects_a_prime[idx]
+            a = a_prime * (1 - (v / self.c)**2)**(3 / 2)
+            self.objects_v[idx] += a * dt
+
+
+        self.objects_X[:, 0] += float(dt)
+        self.objects_X[:, 1] += self.objects_v * dt
 
     def draw(self, sim_runner):
         coord_range_x, coord_range_t = sim_runner.get_screen_coord_range()
@@ -121,19 +158,19 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
             B = np.eye(2)
 
         player_event = np.matmul(
-            np.array([self.t, self.x]),
-            B)
+            B,
+            np.array([self.t, self.x]).T).T
 
 
         # Time gridlines
         t_offset = self.t % 1
-        for t_value in range(t_start, t_end + 1):
+        for t_value in range(t_start + 1, t_end + 1):
             t = t_value - t_offset
             events = np.array([
                 [t, x_start],
                 [t, x_end]
             ])
-            events = np.matmul(events, B)
+            events = np.matmul(B, events.T).T
             events_draw = sim_runner.convert_to_draw_position(events[:, [1, 0]])
             pygame.draw.aaline(
                 sim_runner._screen,
@@ -149,13 +186,13 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
 
         # Position gridlines
         x_offset = self.x % 1
-        for x_value in range(x_start, x_end + 1):
+        for x_value in range(x_start + 1, x_end + 1):
             x = x_value - x_offset
             events = np.array([
                 [t_start, x],
                 [t_end, x]
             ])
-            events = np.matmul(events, B)
+            events = np.matmul(B, events.T).T
             events_draw = sim_runner.convert_to_draw_position(events[:, [1, 0]])
             pygame.draw.aaline(
                 sim_runner._screen,
@@ -168,21 +205,6 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
             sim_runner._screen.blit(
                 font.render(f"{x_text:.0f}", True, (0, 0, 0)),
                 (events_draw[0] + events_draw[1]) / 2)
-
-        # Path player took in the past
-        if len(self.path) >= 2:
-            path = np.matmul(
-                np.asarray(self.path),
-                B)
-            path = player_event - path
-            draw_path = sim_runner.convert_to_draw_position(path)
-            pygame.draw.aalines(
-                sim_runner._screen,
-                (100, 100, 255),
-                False,
-                draw_path[:, [1, 0]],
-                1
-            )
 
         # Player's line of simultaneity: t = vx/c**2
         if self.draw_in_player_frame:
@@ -204,6 +226,34 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
             sim_runner.convert_to_draw_position([v_player * t_start, t_start]),
             sim_runner.convert_to_draw_position([v_player * t_end, t_end]),
         )
+
+        # Path player took in the past
+        if len(self.path) >= 2:
+            path = np.matmul(
+                B,
+                np.asarray(self.path).T).T
+            path = player_event - path
+            draw_path = sim_runner.convert_to_draw_position(path)
+            pygame.draw.aalines(
+                sim_runner._screen,
+                (100, 100, 255),
+                False,
+                draw_path[:, [1, 0]],
+                1
+            )
+
+        # Objects
+        objects_X_prime = np.matmul(
+            B,
+            (self.objects_X - np.array([self.t, self.x])).T,
+        ).T
+        for object_X in objects_X_prime:
+            pygame.draw.circle(
+                sim_runner._screen,
+                (150, 90, 40),
+                sim_runner.convert_to_draw_position([object_X[1], object_X[0]]),
+                5
+            )
 
         # Player
         pygame.draw.circle(
