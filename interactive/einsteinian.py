@@ -21,30 +21,9 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
         self.v = 0
         self.prev_v = self.v
 
-        self.objects_X = np.array([
-            [0., 0.],
-            [0., 2.],
-            [0., 0.],
-            [0., 0.1],
-            [0, 0],
-            [0, 0],
-        ])
-        self.objects_v = np.array([
-            0,
-            0,
-            0.99,
-            0.99,
-            0.8,
-            0,
-        ])
-        self.objects_a_prime = [
-            0,
-            0,
-            0,
-            0,
-            0,
-            0.1,
-        ]
+        self.objects_X = np.array([[0, -100000]], dtype=np.float32)
+        self.objects_v = np.array([0], dtype=np.float32)
+        self.objects_a_prime = np.array([10], dtype=np.float32)
 
         self.a_player = 1
         self.c = float('inf')
@@ -174,7 +153,7 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
             events_draw = sim_runner.convert_to_draw_position(events[:, [1, 0]])
             pygame.draw.aaline(
                 sim_runner._screen,
-                (0, 0, 0),
+                (150, 150, 150),
                 events_draw[0],
                 events_draw[1],
                 1
@@ -196,7 +175,7 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
             events_draw = sim_runner.convert_to_draw_position(events[:, [1, 0]])
             pygame.draw.aaline(
                 sim_runner._screen,
-                (0, 0, 0),
+                (150, 150, 150),
                 events_draw[0],
                 events_draw[1],
                 1
@@ -271,12 +250,17 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
             f"dt/dtau = {1 / self.calc_dt_player_by_dt():.3f}",
             f"path len: {len(self.path)}"
         ]
+        length, width = sim_runner.screen_size()
         for idx, text in enumerate(text_list):
             sim_runner._screen.blit(
                 font.render(text, True, (0, 0, 0)),
-                sim_runner.convert_to_draw_position([
-                    0.8 * x_start,
-                    0.65 * t_start - 0.3 * idx])
+                (20, length - 100 + 15 * idx)
             )
 
-physics_sims.SimRunner().run(InteractiveEinsteinianSim(), time_scale=1, draw_freq=60)
+physics_sims.SimRunner(
+    screen_size=(1000, 1000),
+    screen_coord_scale=(20, 20)
+).run(
+    InteractiveEinsteinianSim(),
+    time_scale=1,
+    draw_freq=60)

@@ -4,15 +4,18 @@ import time
 from physics_sims import Sim
 
 class SimRunner:
-    def __init__(self):
+    def __init__(self, screen_size=(500, 500), screen_coord_scale=(10, 10)):
         # The size of the screen in pixels
-        self._screen_size = np.array([500, 500])
+        self._screen_size = np.array(screen_size)
 
         # The scale of the simulation coordinates spanning across the screen
-        self._screen_coord_scale = np.array([10, -10])
+        self._screen_coord_scale = np.array((screen_coord_scale[0], -screen_coord_scale[1]))
 
         # The simulation coordinate of the center point of the screen
         self._screen_coord_center = np.array([0, 0]) 
+
+    def screen_size(self):
+        return self._screen_size.tolist()
 
     def run_headless(self, sim, run_time, *, time_delta=0.001):
         assert isinstance(sim, Sim)
