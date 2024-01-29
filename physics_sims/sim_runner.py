@@ -51,6 +51,8 @@ class SimRunner:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         running = False
+                    else:
+                        sim.handle_event(event)
 
                 self._screen.fill((255, 255, 255))
 

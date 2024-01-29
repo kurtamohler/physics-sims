@@ -1,3 +1,5 @@
+import pygame
+
 class Sim:
     def __init__(self):
         raise NotImplementedError('method must be defined by subclass')
@@ -10,3 +12,6 @@ class Sim:
     
     def draw(self, sim_runner):
         raise NotImplementedError('method must be defined by subclass')
+
+    def handle_event(self, event: pygame.event.Event):
+        pass

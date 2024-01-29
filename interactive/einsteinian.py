@@ -68,6 +68,13 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
 
         return v
 
+    def handle_event(self, event: pygame.event.Event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
+                self.dt_direction = min(self.dt_direction + 1, 1)
+            elif event.key == pygame.K_DOWN:
+                self.dt_direction = max(self.dt_direction - 1, -1)
+
     def handle_player_controls(self, dt):
         keys = pygame.key.get_pressed()
         a_dir = 0
@@ -81,11 +88,6 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
             a_dir = 0
 
         self.a_dir = a_dir
-
-        if keys[pygame.K_UP]:
-            self.dt_direction = 1
-        if keys[pygame.K_DOWN]:
-            self.dt_direction = -1
 
     def update(self, sim_runner, dt_computer):
         dt_player_by_dt = self.calc_dt_player_by_dt()
