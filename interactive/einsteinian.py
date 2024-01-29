@@ -19,13 +19,14 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
         self.t = 0
         self.x = 0
         self.v = 0
+        self.a_dir = 0
         self.prev_v = self.v
 
         self.objects_X = np.array([[0, -100000]], dtype=np.float32)
         self.objects_v = np.array([0], dtype=np.float32)
         self.objects_a_prime = np.array([10], dtype=np.float32)
 
-        self.a_player = 1
+        self.g_player = 1
         self.c = float('inf')
         self.c = 1
         self.t_player = 0
@@ -53,46 +54,63 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
     def calc_dt_player_by_dt(self):
         return np.sqrt(1 - (self.v / self.c)**2)
 
-    def calc_a(self):
-        return self.a_player * (1 - (self.v / self.c)**2)**(3 / 2)
+    def calc_a(self, v):
+        v = self.maybe_limit_v(v)
 
-    def maybe_limit_v(self):
-        if self.v > self.max_v:
-            self.v = self.max_v
-        elif self.v < -self.max_v:
-            self.v = -self.max_v
+        diff = 1 - (v / self.c)**2
+        return self.a_dir * self.g_player * (diff)**(3 / 2)
+
+    def maybe_limit_v(self, v):
+        if v > self.max_v:
+            return self.max_v
+        elif v < -self.max_v:
+            return -self.max_v
+
+        return v
 
     def handle_player_controls(self, dt):
         keys = pygame.key.get_pressed()
+        a_dir = 0
 
         if keys[pygame.K_RIGHT]:
-            self.v = self.v + self.calc_a() * dt
+            a_dir += 1
         if keys[pygame.K_LEFT]:
-            self.v = self.v - self.calc_a() * dt
+            a_dir -= 1
+        if keys[pygame.K_SPACE]:
+            self.v = 0
+            a_dir = 0
+
+        self.a_dir = a_dir
 
         if keys[pygame.K_UP]:
             self.dt_direction = 1
         if keys[pygame.K_DOWN]:
             self.dt_direction = -1
 
-        if keys[pygame.K_SPACE]:
-            self.v = 0
-
-        self.maybe_limit_v()
-
     def update(self, sim_runner, dt_computer):
+        dt_player_by_dt = self.calc_dt_player_by_dt()
         if self.match_computer_time_to_rest_frame:
             dt = self.dt_direction * dt_computer
-            dt_player = dt * self.calc_dt_player_by_dt()
+            dt_player = dt * dt_player_by_dt
         else:
-            dt = self.dt_direction * dt_computer / self.calc_dt_player_by_dt()
+            dt = self.dt_direction * dt_computer / dt_player_by_dt
             dt_player = dt_computer
 
         self.handle_player_controls(dt)
-        self.t = self.t + dt
-        self.x = self.x + self.v * dt
-        self.t_player = self.t_player + dt_player
 
+        _, self.t_player, _ = physics_sims.integrators.runge_kutta_4th_order(
+            dt, self.t, self.t_player, dt_player_by_dt,
+            lambda t, x, v: 0
+        )
+
+        self.t, self.x, self.v = physics_sims.integrators.runge_kutta_4th_order(
+            dt, self.t, self.x, self.v,
+            lambda t, x, v: self.calc_a(v)
+        )
+        self.v = self.maybe_limit_v(self.v)
+
+
+        # Update player's path
         if self.prev_v == self.v and self.prev_dt_direction == self.dt_direction:
             self.path[-1] = [self.t, self.x]
         else:
@@ -113,7 +131,7 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
 
         # Simulate objects
         for idx, object_X in enumerate(self.objects_X):
-            v = self.objects_v[idx]
+            v = self.maybe_limit_v(self.objects_v[idx])
             a_prime = self.objects_a_prime[idx]
             a = a_prime * (1 - (v / self.c)**2)**(3 / 2)
             self.objects_v[idx] += a * dt
@@ -263,4 +281,5 @@ physics_sims.SimRunner(
 ).run(
     InteractiveEinsteinianSim(),
     time_scale=1,
+    time_delta=0.01,
     draw_freq=60)
