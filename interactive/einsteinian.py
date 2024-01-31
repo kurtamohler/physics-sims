@@ -37,6 +37,8 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
         self.path = [[self.t, self.x]] * self.max_path_len
 
         self.dt_direction = 1
+        self.dt_direction_range = [0, 1]
+
         self.prev_dt_direction = self.dt_direction
 
         # If True, time in the rest frame passes at the same rate
@@ -71,9 +73,9 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
     def handle_event(self, event: pygame.event.Event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
-                self.dt_direction = min(self.dt_direction + 1, 1)
+                self.dt_direction = min(self.dt_direction + 1, self.dt_direction_range[1])
             elif event.key == pygame.K_DOWN:
-                self.dt_direction = max(self.dt_direction - 1, -1)
+                self.dt_direction = max(self.dt_direction - 1, self.dt_direction_range[0])
 
     def handle_player_controls(self, dt):
         keys = pygame.key.get_pressed()
@@ -144,6 +146,9 @@ class InteractiveEinsteinianSim(physics_sims.Sim):
 
     def draw(self, sim_runner):
         coord_range_x, coord_range_t = sim_runner.get_screen_coord_range()
+
+        coord_range_x *= 10
+        coord_range_t *= 10
 
         x_start = int(-(coord_range_x // 2))
         x_end = int(coord_range_x - coord_range_x // 2)
