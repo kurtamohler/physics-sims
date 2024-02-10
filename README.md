@@ -1,7 +1,8 @@
 # physics-sims
 
-Physics simulations based on Lagrangian and Hamiltonian mechanics with constant
-energy integration
+These are my notes and simulations of physics topics that I'm learning about. I
+do not have a physics degree and I am not an expert on the subject, so these
+notes should be taken with a high degree of skepticism.
 
 ## Installation
 
@@ -24,6 +25,14 @@ conda env create -f environment.yaml -n physics-sims && conda activate physics-s
 ```bash
 pip install -e .
 ```
+
+## Run interactive special relativity simulation
+
+```bash
+python interactive/einsteinian.py
+```
+
+Use the left and right arrow keys to accelerate in those directions.
 
 ## Run notebooks
 
