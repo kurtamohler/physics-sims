@@ -1,0 +1,11 @@
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - pip
+  - python>=3
+  - pip:
+    - numpy
+    - matplotlib
+    - pygame
+    - spacetimelib
